@@ -1,4 +1,0 @@
-/var/learning/microservices/payment-service/PaymentService/src/main/java/deyadecember/PaymentApplication.java
-/var/learning/microservices/payment-service/PaymentService/src/main/java/deyadecember/producer/PaymentProducer.java
-/var/learning/microservices/payment-service/PaymentService/src/main/java/deyadecember/dto/PaymentEvent.java
-/var/learning/microservices/payment-service/PaymentService/src/main/java/deyadecember/listener/OrderCreatedListener.java
