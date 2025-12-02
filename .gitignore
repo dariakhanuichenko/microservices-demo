@@ -1,8 +1,9 @@
 # IntelliJ
-# .idea/
-# *.iml
-#
-# # Build
-# target/
-# out/
-# build/
+.idea/
+*.iml
+
+# Build
+target/
+out/
+
+build/
