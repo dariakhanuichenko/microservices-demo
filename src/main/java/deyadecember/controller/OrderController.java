@@ -1,28 +1,25 @@
 package deyadecember.controller;
 
-import deyadecember.dto.OrderCreatedEvent;
-import deyadecember.producer.OrderProducer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import deyadecember.producer.OrderEventPublisher;
+import deyadecember.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @RestController
 public class OrderController {
 
     @Autowired
-    private OrderProducer producer;
+    private OrderEventPublisher producer;
+    @Autowired
+    private OrderService service;
 
     @PostMapping("/create")
-    public String createOrder() {
-        OrderCreatedEvent event = new OrderCreatedEvent(
-                UUID.randomUUID().toString(),
-                100.0
-        );
+    public String createOrder() throws JsonProcessingException {
 
-        producer.send(event);
+
+        service.createOrder(100.0);
 
         return "Order created!";
     }
