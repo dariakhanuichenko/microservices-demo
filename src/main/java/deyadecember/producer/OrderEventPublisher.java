@@ -27,7 +27,7 @@ public class OrderEventPublisher {
         for (OutboxEvent event : events) {
             try {
                 kafkaTemplate.send(
-                        "order.events",
+                        "orders.created",
                         event.getAggregateId(),
                         event.getPayload()
                 ).get();
