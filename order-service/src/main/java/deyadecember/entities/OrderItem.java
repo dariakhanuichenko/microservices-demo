@@ -4,35 +4,31 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "order_items")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Order {
+public class OrderItem {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
     @Column(nullable=false)
-    private UUID customerId;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> items;
+    private UUID flowerId;
 
     @Column(nullable = false)
-    private BigDecimal totalAmount;
-
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private int quantity;
 
     @Column(nullable = false)
-    private Instant createdAt;
+    private BigDecimal unitPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 }
