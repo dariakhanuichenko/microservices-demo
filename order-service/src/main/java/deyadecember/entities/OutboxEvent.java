@@ -1,13 +1,11 @@
 package deyadecember.entities;
 
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
@@ -32,7 +30,6 @@ public class OutboxEvent {
     private String eventType;
 
     @Column(name = "payload", columnDefinition = "jsonb")
-    @Type(JsonBinaryType.class)
     @JdbcTypeCode(SqlTypes.JSON)
     private String payload;
 

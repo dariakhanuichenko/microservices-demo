@@ -37,8 +37,7 @@ public class OrderCreatedListener {
                 throw new IllegalArgumentException("Amount cannot be negative");
 
             }
-            // 🧠 бізнес-логіка
-            //        producer.send( event);
+            producer.send(event);
             log.info("Processing payment for order {}", event.getOrderId());
 
             ack.acknowledge();
