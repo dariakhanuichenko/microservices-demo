@@ -1,6 +1,6 @@
 package deyadecember.listener;
 
-import deyadecember.dto.OrderCreatedEvent;
+import deyadecember.events.OrderCreatedEvent;
 import deyadecember.producer.UserProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,7 +13,7 @@ public class PaymentReceivedListener {
     private final UserProducer producer;
 
 
-    @KafkaListener(topics = "payment.completed")
+    @KafkaListener(topics = "payments.completed")
     public void listen(OrderCreatedEvent event) {
         System.out.println("💰 UserService received event: " + event);
         producer.send(event);
