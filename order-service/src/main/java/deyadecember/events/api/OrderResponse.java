@@ -1,4 +1,4 @@
-package deyadecember.dto.api;
+package deyadecember.events.api;
 
 import deyadecember.entities.OrderStatus;
 

@@ -1,4 +1,4 @@
-package deyadecember.dto.events;
+package deyadecember.events;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -18,6 +19,6 @@ public class OrderCreatedEvent {
     private BigDecimal totalAmount;
     private Instant createdAt;
 
-    public record Item(String flowerId, int quantity) {}
+    public record Item(UUID flowerId, int quantity) {}
 }
 

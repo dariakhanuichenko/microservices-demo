@@ -2,12 +2,12 @@ package deyadecember.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import deyadecember.dto.api.CreateOrderRequest;
+import deyadecember.events.api.CreateOrderRequest;
 import deyadecember.entities.Order;
 import deyadecember.entities.OrderItem;
 import deyadecember.entities.OrderStatus;
 import deyadecember.entities.OutboxEvent;
-import deyadecember.dto.events.OrderCreatedEvent;
+import deyadecember.events.OrderCreatedEvent;
 import deyadecember.repository.OrderRepository;
 import deyadecember.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +66,7 @@ public class OrderService {
     private OutboxEvent createOutboxEvent(Order order) throws JsonProcessingException {
 
         List<OrderCreatedEvent.Item> eventItems = order.getItems().stream()
-                .map(i -> new OrderCreatedEvent.Item(i.getFlowerId().toString(), i.getQuantity()))
+                .map(i -> new OrderCreatedEvent.Item(i.getFlowerId(), i.getQuantity()))
                 .toList();
 
         OrderCreatedEvent event =

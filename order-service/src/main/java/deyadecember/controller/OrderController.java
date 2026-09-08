@@ -1,8 +1,8 @@
 package deyadecember.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import deyadecember.dto.api.CreateOrderRequest;
-import deyadecember.dto.api.OrderResponse;
+import deyadecember.events.api.CreateOrderRequest;
+import deyadecember.events.api.OrderResponse;
 import deyadecember.entities.Order;
 import deyadecember.service.OrderService;
 import lombok.AllArgsConstructor;

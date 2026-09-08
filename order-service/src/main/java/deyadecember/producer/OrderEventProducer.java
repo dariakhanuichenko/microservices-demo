@@ -14,10 +14,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OrderEventPublisher {
+public class OrderEventProducer {
     private final OutboxEventRepository repo;
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private Logger log = LoggerFactory.getLogger(OrderEventPublisher.class);
+    private Logger log = LoggerFactory.getLogger(OrderEventProducer.class);
 
     @Scheduled(fixedDelay = 5000)
     @Transactional
