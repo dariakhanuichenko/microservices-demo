@@ -1,6 +1,6 @@
 package deyadecember.listener;
 
-import deyadecember.dto.OrderCreatedEvent;
+import deyadecember.events.OrderCreatedEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
