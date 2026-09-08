@@ -1,6 +1,6 @@
 package deyadecember.producer;
 
-import deyadecember.dto.OrderCreatedEvent;
+import deyadecember.events.PaymentCompleted;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PaymentProducer {
 
-    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
+    private final KafkaTemplate<String, PaymentCompleted> kafkaTemplate;
 
-    public void send(OrderCreatedEvent event) {
-        kafkaTemplate.send("payment.completed", event.getOrderId(), event);
+    public void send(PaymentCompleted event) {
+        kafkaTemplate.send("payments.completed", event.orderId().toString(), event);
     }
 }
 

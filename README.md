@@ -10,12 +10,12 @@ Kafka events. Each service keeps its own git history (imported with
 POST /create
      |
      v
-order-service ──orders.created──> payment-service ──payment.completed──> user-service ──user.updated──> inventory-service
+order-service ──orders.created──> payment-service ──payments.completed──> user-service ──user.updated──> inventory-service
   (8080)                              (8081)                                (8082)                          (8083)
 ```
 
 `order-service` does not publish to Kafka directly. It writes the order and an
-outbox row in one transaction; a scheduler (`OrderEventPublisher`, every 5s)
+outbox row in one transaction; a scheduler (`OrderEventProducer`, every 5s)
 picks unprocessed rows up and publishes them. That is the transactional outbox
 pattern: the order and the intent to publish either both commit or neither does.
 
@@ -30,8 +30,8 @@ Dockerfile              one build for all four services (--build-arg SERVICE=...
 docker-compose.yml      Kafka, Zookeeper, Postgres and the four services
 .env.example            copy to .env to change DB credentials
 order-service/          REST entrypoint, Postgres, outbox publisher
-payment-service/        consumes orders.created, produces payment.completed
-user-service/           consumes payment.completed, produces user.updated
+payment-service/        consumes orders.created, produces payments.completed
+user-service/           consumes payments.completed, produces user.updated
 inventory-service/      consumes user.updated (end of the chain)
 ```
 

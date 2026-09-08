@@ -57,7 +57,7 @@ services:
     command:
       - |
         set -e
-        for t in orders.created payment.completed user.updated; do
+        for t in orders.created payments.comleted user.updated; do
           kafka-topics.sh --bootstrap-server kafka:29092 \
             --create --if-not-exists --topic "$$t" --partitions 1 --replication-factor 1
         done
