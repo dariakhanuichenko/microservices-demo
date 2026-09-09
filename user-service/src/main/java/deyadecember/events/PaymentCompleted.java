@@ -4,6 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-public record PaymentCompleted(UUID paymentId, UUID orderId, BigDecimal amount, Instant paidAt) {
+public record PaymentCompleted(UUID paymentId, UUID orderId, UUID customerId, BigDecimal amount, Instant paidAt) {
 }
 
