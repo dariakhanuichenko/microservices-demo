@@ -6,18 +6,14 @@ services:
     container_name: zookeeper
     environment:
       ALLOW_ANONYMOUS_LOGIN: "yes"
-    healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc -w 2 localhost 2181 | grep imok"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
 
   kafka:
     image: bitnamilegacy/kafka:3.9.0
     container_name: kafka
     depends_on:
-      zookeeper:
-        condition: service_healthy
+      # start order only - Kafka retries the Zookeeper connection itself.
+      # A healthcheck here needs tools/4lw commands the image does not offer.
+      - zookeeper
     environment:
       ALLOW_PLAINTEXT_LISTENER: "yes"
       KAFKA_CFG_BROKER_ID: "1"
@@ -57,7 +53,7 @@ services:
     command:
       - |
         set -e
-        for t in orders.created payments.comleted user.updated; do
+        for t in orders.created payments.completed user.updated; do
           kafka-topics.sh --bootstrap-server kafka:29092 \
             --create --if-not-exists --topic "$$t" --partitions 1 --replication-factor 1
         done
