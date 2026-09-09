@@ -1,0 +1,33 @@
+package deyadecember.controller;
+
+import deyadecember.stock.Stock;
+import deyadecember.stock.StockStore;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/stock")
+@AllArgsConstructor
+public class StockController {
+
+    private StockStore stockStore;
+
+    @GetMapping
+    public Map<UUID, Stock> getCurrentStock() {
+        return stockStore.snapshot();
+    }
+
+    @GetMapping("/{flowerId}")
+    public Stock getCurrentFlowerStore(@PathVariable UUID flowerId) {
+        return stockStore.get(flowerId);
+    }
+
+    @PostMapping
+    public boolean replenishStock() {
+        return stockStore.replenishStock();
+    }
+
+}
