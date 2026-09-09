@@ -50,14 +50,18 @@ services:
         condition: service_healthy
     restart: "no"
     entrypoint: ["/bin/bash", "-c"]
+    # Creates the three business topics with 3 partitions each. The second call
+    # bumps topics that were created earlier with a single partition; it fails
+    # harmlessly once they already have 3, hence the "|| true".
+    # One command per line on purpose - no backslash continuations to break.
     command:
       - |
         set -e
-        for t in orders.created payments.completed user.updated; do
-          kafka-topics.sh --bootstrap-server kafka:29092 \
-            --create --if-not-exists --topic "$$t" --partitions 1 --replication-factor 1
+        for t in orders.created payments.completed inventory.reserved; do
+          kafka-topics.sh --bootstrap-server kafka:29092 --create --if-not-exists --topic "$$t" --partitions 3 --replication-factor 1
+          kafka-topics.sh --bootstrap-server kafka:29092 --alter --topic "$$t" --partitions 3 || true
         done
-        kafka-topics.sh --bootstrap-server kafka:29092 --list
+        kafka-topics.sh --bootstrap-server kafka:29092 --describe
 
   postgres:
     image: postgres:15
