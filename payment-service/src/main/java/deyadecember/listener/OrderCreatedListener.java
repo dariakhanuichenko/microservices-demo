@@ -43,7 +43,7 @@ public class OrderCreatedListener {
         //todo make payment
         UUID paymentId = UUID.nameUUIDFromBytes(
                 event.getOrderId().toString().getBytes(StandardCharsets.UTF_8));
-        PaymentCompleted paymentCompleted = new PaymentCompleted(paymentId, event.getOrderId(), event.getTotalAmount(), Instant.now());
+        PaymentCompleted paymentCompleted = new PaymentCompleted(paymentId, event.getOrderId(), event.getCustomerId(), event.getTotalAmount(), Instant.now());
         producer.send(paymentCompleted);
         log.info("Processing payment for order {}", event.getOrderId());
 
