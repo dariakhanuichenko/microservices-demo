@@ -58,6 +58,8 @@ class StockStoreTest {
     @Test
     void rejectsUnknownFlower() {
         assertFalse(stockStore.reserve(ORDER_ID, List.of(new ReservedItem(UNKNOWN_FLOWER, 3))));
+        assertEquals(new Stock(2, 0), stockStore.get(ROSE));
+        assertEquals(new Stock(3, 0), stockStore.get(TULIP));
     }
 
     @Test
