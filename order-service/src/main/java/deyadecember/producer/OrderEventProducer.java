@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class OrderEventProducer {
                         "orders.created",
                         event.getAggregateId(),
                         event.getPayload()
-                ).get();
+                ).get(5, TimeUnit.SECONDS);
 
                 event.setProcessed(true);
             } catch (Exception e) {
