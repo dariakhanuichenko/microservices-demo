@@ -1,5 +1,7 @@
 package deyadecember.listener;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import deyadecember.events.PaymentCompleted;
 import deyadecember.stats.CustomerStatsStore;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +14,13 @@ import org.springframework.stereotype.Service;
 public class PaymentReceivedListener {
     private final Logger log = org.slf4j.LoggerFactory.getLogger(PaymentReceivedListener.class);
     private final CustomerStatsStore statsStore;
+    private final ObjectMapper objectMapper;
 
 
     @KafkaListener(topics = "payments.completed")
-    public void listen(PaymentCompleted event) {
-        statsStore.addPayment(event.customerId(),event.amount());
+    public void listen(String payload) throws JsonProcessingException {
+        PaymentCompleted event = objectMapper.readValue(payload, PaymentCompleted.class);
+        statsStore.addPayment(event.customerId(), event.amount());
         log.info("Customer {} now has {}", event.customerId(), statsStore.get(event.customerId()));
     }
 }
