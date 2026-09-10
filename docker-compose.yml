@@ -63,6 +63,18 @@ services:
         done
         kafka-topics.sh --bootstrap-server kafka:29092 --describe
 
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.0.0
+    container_name: kafka-ui
+    ports:
+      - "8084:8080"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+
   postgres:
     image: postgres:15
     container_name: postgres
