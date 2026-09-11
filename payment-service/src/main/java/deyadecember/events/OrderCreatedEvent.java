@@ -19,6 +19,6 @@ public class OrderCreatedEvent {
     private BigDecimal totalAmount;
     private Instant createdAt;
 
-    public record Item(String flowerId, int quantity) {}
+    public record Item(UUID flowerId, int quantity) {}
 }
 

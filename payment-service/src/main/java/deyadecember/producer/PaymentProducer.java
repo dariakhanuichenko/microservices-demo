@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentProducer {
@@ -15,9 +19,18 @@ public class PaymentProducer {
     private final ObjectMapper objectMapper;
 
     public void send(PaymentCompleted event) throws JsonProcessingException {
-        kafkaTemplate.send("payments.completed",
-                event.orderId().toString(),
-                objectMapper.writeValueAsString(event));
+
+        try {
+            kafkaTemplate.send("payments.completed",
+                            event.orderId().toString(),
+                            objectMapper.writeValueAsString(event))
+                    .get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("interrupted while publishing payment", e);
+        } catch (ExecutionException | TimeoutException e) {
+            throw new IllegalStateException("failed to publish payment", e);
+        }
     }
 }
 
