@@ -1,49 +1,50 @@
 package deyadecember.stats;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class CustomerStatsStore {
 
+    private static final Duration DEDUP_TTL = Duration.ofDays(7);
+
+    private static final RedisScript<Long> ADD_PAYMENT =
+            RedisScript.of(new ClassPathResource("scripts/add-payment.lua"), Long.class);
+
     private final StringRedisTemplate redis;
-    private final Map<UUID, CustomerStats> stats = new ConcurrentHashMap<>();
 
-    public void addPayment(UUID customerId, BigDecimal amount) {
-        long cents = amount.movePointRight(2).longValueExact();
-        redis.execute(new SessionCallback<List<Object>>() {
-            @Override
-            public List<Object> execute(RedisOperations ops) {
+    public boolean addPayment(UUID paymentId,UUID customerId, BigDecimal amount) {
 
-                ops.multi(); //atomicity
-                ops.opsForHash().increment(key(customerId), "ordersCount", 1);
-                ops.opsForHash().increment(key(customerId), "totalSpentCents", cents);
-                return ops.exec();
-            }
-        });
+        Long counted = redis.execute(
+                ADD_PAYMENT,
+                List.of(processedKey(paymentId), customerKey(customerId)),
+                String.valueOf(toCents(amount)),
+                String.valueOf(DEDUP_TTL.toSeconds()));
+        return Long.valueOf(1).equals(counted);
     }
 
     public CustomerStats get(UUID customerId) {
-        Map<Object, Object> h = redis.opsForHash().entries(key(customerId));
-        if (h.isEmpty()) {
-            return new CustomerStats(0, BigDecimal.ZERO);
-        }
-        int count = Integer.parseInt((String) h.getOrDefault("ordersCount", "0"));
-        long cents = Long.parseLong((String) h.getOrDefault("totalSpentCents", "0"));
-        return new CustomerStats(count, BigDecimal.valueOf(cents, 2));
+        return CustomerStats.fromHash(redis.opsForHash().entries(customerKey(customerId)));
     }
 
-    private String key(UUID customerId) {
+    private static long toCents(BigDecimal amount) {
+        return amount.movePointRight(2).longValueExact();
+    }
+
+    private String customerKey(UUID customerId) {
         return "customer:" + customerId;
+    }
+
+    private String processedKey(UUID paymentId) {
+        return "processed:payment:" + paymentId;
     }
 }
