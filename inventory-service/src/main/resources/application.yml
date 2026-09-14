@@ -7,7 +7,11 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    listener:
+      ack-mode: manual
     consumer:
+      enable-auto-commit: false
+
       # own group per service - sharing one group id across services is what
       # made offsets and rebalances fight each other
       group-id: inventory-service

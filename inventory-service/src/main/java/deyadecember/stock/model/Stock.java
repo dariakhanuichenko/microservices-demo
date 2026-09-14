@@ -1,4 +1,4 @@
-package deyadecember.stock;
+package deyadecember.stock.model;
 
 public record Stock(int available, int reserved) {
 
