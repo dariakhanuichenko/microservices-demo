@@ -57,7 +57,7 @@ services:
     command:
       - |
         set -e
-        for t in orders.created payments.completed inventory.reserved inventory.rejected; do
+        for t in orders.created payments.completed payments.failed inventory.reserved inventory.rejected; do
           kafka-topics.sh --bootstrap-server kafka:29092 --create --if-not-exists --topic "$$t" --partitions 3 --replication-factor 1
           kafka-topics.sh --bootstrap-server kafka:29092 --alter --topic "$$t" --partitions 3 || true
         done

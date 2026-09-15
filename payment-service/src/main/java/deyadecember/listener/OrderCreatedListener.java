@@ -3,8 +3,7 @@ package deyadecember.listener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import deyadecember.events.OrderCreatedEvent;
-import deyadecember.events.PaymentCompleted;
-import deyadecember.producer.PaymentProducer;
+import deyadecember.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,15 +14,12 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
-
 
 @Component
 @RequiredArgsConstructor
 public class OrderCreatedListener {
 
-    private final PaymentProducer producer;
+    private final PaymentService service;
     private final ObjectMapper objectMapper;
     private final Logger log = org.slf4j.LoggerFactory.getLogger(OrderCreatedListener.class);
 
@@ -39,13 +35,7 @@ public class OrderCreatedListener {
         OrderCreatedEvent event = objectMapper.readValue(payload, OrderCreatedEvent.class);
         log.info("Received order {}", event.getOrderId());
 
-        //todo make payment
-        UUID paymentId = UUID.nameUUIDFromBytes(
-                ("payment:" + event.getOrderId()).getBytes(StandardCharsets.UTF_8));
-        PaymentCompleted paymentCompleted = new PaymentCompleted(paymentId, event.getOrderId(), event.getCustomerId(), event.getTotalAmount(), event.getCreatedAt());
-        producer.send(paymentCompleted);
-        log.info("Processing payment for order {}", event.getOrderId());
-
+        service.publishEvents(event);
         ack.acknowledge();
     }
 
