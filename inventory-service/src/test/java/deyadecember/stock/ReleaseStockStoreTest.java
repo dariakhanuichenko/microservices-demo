@@ -40,7 +40,7 @@ class ReleaseStockStoreTest extends StockStoreTestBase {
     }
 
     @Test
-    void releaseUnknownOrderIsIgnored() {
+    void releaseBeforeReserveThrowsSoMessageIsRetried() {
         assertThrows(IllegalStateException.class,
                 () -> stockStore.release(ORDER_ID));
         assertEquals(new Stock(2, 0), stockStore.get(ROSE));
