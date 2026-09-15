@@ -20,8 +20,12 @@ public class PaymentReceivedListener {
     @KafkaListener(topics = "payments.completed")
     public void listen(String payload) throws JsonProcessingException {
         PaymentCompleted event = objectMapper.readValue(payload, PaymentCompleted.class);
-        statsStore.addPayment(event.customerId(), event.amount());
-        log.info("Customer {} now has {}", event.customerId(), statsStore.get(event.customerId()));
+        boolean counted = statsStore.addPayment(event.paymentId(), event.customerId(), event.amount());
+        if (counted) {
+            log.info("Customer {} now has {}", event.customerId(), statsStore.get(event.customerId()));
+        } else {
+            log.info("Payment {} already processed, skipped", event.paymentId());
+        }
     }
 }
 

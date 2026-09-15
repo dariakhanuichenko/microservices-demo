@@ -1,8 +1,8 @@
 package deyadecember.controller;
 
-import deyadecember.stock.Stock;
 import deyadecember.stock.StockStore;
-import lombok.AllArgsConstructor;
+import deyadecember.stock.model.Stock;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -10,10 +10,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/stock")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class StockController {
 
-    private StockStore stockStore;
+    private final StockStore stockStore;
 
     @GetMapping
     public Map<UUID, Stock> getCurrentStock() {
