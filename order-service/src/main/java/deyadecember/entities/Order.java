@@ -35,4 +35,13 @@ public class Order {
 
     @Column(nullable = false)
     private Instant createdAt;
+
+    @Column(nullable = false)
+    private Boolean paid;
+
+    @Column(nullable = false)
+    private Boolean reserved;
+
+    @Enumerated(EnumType.STRING)
+    private CancellationReason cancellationReason;
 }

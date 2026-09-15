@@ -2,21 +2,20 @@ package deyadecember.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import deyadecember.events.api.CreateOrderRequest;
-import deyadecember.entities.Order;
-import deyadecember.entities.OrderItem;
-import deyadecember.entities.OrderStatus;
-import deyadecember.entities.OutboxEvent;
+import deyadecember.entities.*;
 import deyadecember.events.OrderCreatedEvent;
+import deyadecember.events.api.CreateOrderRequest;
 import deyadecember.repository.OrderRepository;
 import deyadecember.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,6 +25,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OutboxEventRepository outboxRepo;
     private final ObjectMapper objectMapper;
+    private final Logger log = org.slf4j.LoggerFactory.getLogger(OrderService.class);
+
 
     @Transactional
     public Order createOrder(CreateOrderRequest request) throws JsonProcessingException {
@@ -40,14 +41,20 @@ public class OrderService {
     private Order createAndSaveOrder(CreateOrderRequest request) {
         Order order = Order.builder()
                 .id(UUID.randomUUID())
-                //todo: rewrite  using price*quantity
-                .totalAmount(BigDecimal.valueOf(10))
                 .createdAt(Instant.now())
                 .status(OrderStatus.NEW)
-                .customerId(request.customerId()).build();
+                .customerId(request.customerId())
+                .paid(false)
+                .reserved(false)
+                .build();
 
-        order.setItems(createOrderItems(order, request.items()));
+        List<OrderItem> items = createOrderItems(order, request.items());
+        BigDecimal total = items.stream()
+                .map(i -> i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        order.setItems(items);
+        order.setTotalAmount(total);
         return orderRepository.save(order);
     }
 
@@ -82,5 +89,54 @@ public class OrderService {
                 .processed(false)
                 .build();
     }
+
+
+    public Optional<Order> getOrderById(UUID orderId) {
+        return orderRepository.findById(orderId);
+    }
+
+    @Transactional
+    public void reserveOrder(UUID orderId) {
+        getOrderById(orderId).ifPresent(i -> {
+            if (!i.getReserved()) {
+                i.setReserved(true);
+                recalculate(i);
+            }
+        });
+    }
+
+    @Transactional
+    public void cancelOrder(UUID orderId, CancellationReason reason ) {
+        getOrderById(orderId).ifPresent(i -> {
+            if(OrderStatus.COMPLETED.equals(i.getStatus())){
+                log.info("Skip cancelling order, status already COMPLETED");
+                return;
+            }
+            if (i.getCancellationReason() != null) {
+                log.info("Order {} already cancelled ({}), keeping the original reason",
+                        orderId, i.getCancellationReason());
+                return;
+            }
+            i.setCancellationReason(reason);
+            recalculate(i);
+        });
+    }
+
+    @Transactional
+    public void payOrder(UUID orderId) {
+        getOrderById(orderId).ifPresent(i -> {
+            if (!i.getPaid()) {
+                i.setPaid(true);
+                recalculate(i);
+            }
+        });
+    }
+    private void recalculate(Order o) {
+        if (o.getCancellationReason() != null)      o.setStatus(OrderStatus.CANCELLED);
+        else if (o.getPaid() && o.getReserved())    o.setStatus(OrderStatus.COMPLETED);
+        else                                        o.setStatus(OrderStatus.NEW);
+    }
+
+
 }
 
