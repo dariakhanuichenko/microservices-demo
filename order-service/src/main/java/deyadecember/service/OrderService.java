@@ -3,8 +3,9 @@ package deyadecember.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import deyadecember.entities.*;
-import deyadecember.events.OrderCreatedEvent;
 import deyadecember.events.api.CreateOrderRequest;
+import deyadecember.events.model.OrderCancelledEvent;
+import deyadecember.events.model.OrderCreatedEvent;
 import deyadecember.repository.OrderRepository;
 import deyadecember.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,15 +27,80 @@ public class OrderService {
     private final ObjectMapper objectMapper;
     private final Logger log = org.slf4j.LoggerFactory.getLogger(OrderService.class);
 
-
     @Transactional
     public Order createOrder(CreateOrderRequest request) throws JsonProcessingException {
         Order order = createAndSaveOrder(request);
-
-        OutboxEvent outbox = createOutboxEvent(order);
-
+        OutboxEvent outbox = createOutboxEvent(order, EventType.ORDER_CREATED);
         outboxRepo.save(outbox);
         return order;
+    }
+
+    @Transactional
+    public void reserveOrder(UUID orderId) {
+        orderRepository.findById(orderId).ifPresent(i -> {
+            if (!i.getReserved()) {
+                i.setReserved(true);
+                recalculate(i);
+            }
+        });
+    }
+
+    @Transactional(rollbackFor = JsonProcessingException.class)
+    public void cancelOrder(UUID orderId, CancellationReason reason) throws JsonProcessingException {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            log.warn("Order {} not found, cancel ignored", orderId);
+            return;
+        }
+        if (OrderStatus.COMPLETED.equals(order.getStatus())) {
+            log.info("Skip cancelling order, status already COMPLETED");
+            return;
+        }
+        if (order.getCancellationReason() != null) {
+            log.info("Order {} already cancelled ({}), keeping the original reason",
+                    orderId, order.getCancellationReason());
+            return;
+        }
+        order.setCancellationReason(reason);
+        recalculate(order);
+        outboxRepo.save(createOutboxEvent(order, EventType.ORDER_CANCELLED));
+    }
+
+    @Transactional
+    public void payOrder(UUID orderId) {
+        orderRepository.findById(orderId).ifPresent(i -> {
+            if (!i.getPaid()) {
+                i.setPaid(true);
+                recalculate(i);
+            }
+        });
+    }
+
+    private OutboxEvent createOutboxEvent(Order order, EventType eventType) throws JsonProcessingException {
+        Object event = null;
+        switch (eventType) {
+            case ORDER_CREATED ->{
+                List<OrderCreatedEvent.Item> eventItems = order.getItems().stream()
+                        .map(i -> new OrderCreatedEvent.Item(i.getFlowerId(), i.getQuantity()))
+                        .toList();
+                event = new OrderCreatedEvent(order.getId().toString(), order.getCustomerId().toString(),
+                        eventItems, order.getTotalAmount(), order.getCreatedAt());
+            }
+
+            case ORDER_CANCELLED -> {
+                event = new OrderCancelledEvent(order.getId(), order.getCustomerId(),
+                        order.getTotalAmount(), order.getCancellationReason(), Instant.now());
+            }
+        }
+        return OutboxEvent.builder()
+                .id(UUID.randomUUID())
+                .aggregateType("ORDER")
+                .aggregateId(order.getId().toString())
+                .eventType(eventType)
+                .payload(objectMapper.writeValueAsString(event))
+                .createdAt(Instant.now())
+                .processed(false)
+                .build();
     }
 
     private Order createAndSaveOrder(CreateOrderRequest request) {
@@ -70,73 +135,10 @@ public class OrderService {
                         .build()).toList();
     }
 
-    private OutboxEvent createOutboxEvent(Order order) throws JsonProcessingException {
-
-        List<OrderCreatedEvent.Item> eventItems = order.getItems().stream()
-                .map(i -> new OrderCreatedEvent.Item(i.getFlowerId(), i.getQuantity()))
-                .toList();
-
-        OrderCreatedEvent event =
-                new OrderCreatedEvent(order.getId().toString(), order.getCustomerId().toString(), eventItems, order.getTotalAmount(), order.getCreatedAt());
-
-        return OutboxEvent.builder()
-                .id(UUID.randomUUID())
-                .aggregateType("ORDER")
-                .aggregateId(order.getId().toString())
-                .eventType("OrderCreated")
-                .payload(objectMapper.writeValueAsString(event))
-                .createdAt(Instant.now())
-                .processed(false)
-                .build();
-    }
-
-
-    public Optional<Order> getOrderById(UUID orderId) {
-        return orderRepository.findById(orderId);
-    }
-
-    @Transactional
-    public void reserveOrder(UUID orderId) {
-        getOrderById(orderId).ifPresent(i -> {
-            if (!i.getReserved()) {
-                i.setReserved(true);
-                recalculate(i);
-            }
-        });
-    }
-
-    @Transactional
-    public void cancelOrder(UUID orderId, CancellationReason reason ) {
-        getOrderById(orderId).ifPresent(i -> {
-            if(OrderStatus.COMPLETED.equals(i.getStatus())){
-                log.info("Skip cancelling order, status already COMPLETED");
-                return;
-            }
-            if (i.getCancellationReason() != null) {
-                log.info("Order {} already cancelled ({}), keeping the original reason",
-                        orderId, i.getCancellationReason());
-                return;
-            }
-            i.setCancellationReason(reason);
-            recalculate(i);
-        });
-    }
-
-    @Transactional
-    public void payOrder(UUID orderId) {
-        getOrderById(orderId).ifPresent(i -> {
-            if (!i.getPaid()) {
-                i.setPaid(true);
-                recalculate(i);
-            }
-        });
-    }
     private void recalculate(Order o) {
-        if (o.getCancellationReason() != null)      o.setStatus(OrderStatus.CANCELLED);
-        else if (o.getPaid() && o.getReserved())    o.setStatus(OrderStatus.COMPLETED);
-        else                                        o.setStatus(OrderStatus.NEW);
+        if (o.getCancellationReason() != null) o.setStatus(OrderStatus.CANCELLED);
+        else if (o.getPaid() && o.getReserved()) o.setStatus(OrderStatus.COMPLETED);
+        else o.setStatus(OrderStatus.NEW);
     }
-
-
 }
 

@@ -1,4 +1,4 @@
-package deyadecember.events;
+package deyadecember.events.model;
 
 public enum RejectionReason {
     OUT_OF_STOCK,

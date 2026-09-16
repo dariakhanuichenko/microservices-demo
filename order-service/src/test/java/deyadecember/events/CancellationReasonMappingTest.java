@@ -1,6 +1,7 @@
 package deyadecember.events;
 
 import deyadecember.entities.CancellationReason;
+import deyadecember.events.model.RejectionReason;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

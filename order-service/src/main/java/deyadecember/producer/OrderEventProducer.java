@@ -28,7 +28,7 @@ public class OrderEventProducer {
         for (OutboxEvent event : events) {
             try {
                 kafkaTemplate.send(
-                        "orders.created",
+                        event.getEventType().topic(),
                         event.getAggregateId(),
                         event.getPayload()
                 ).get(5, TimeUnit.SECONDS);
@@ -36,11 +36,9 @@ public class OrderEventProducer {
                 event.setProcessed(true);
             } catch (Exception e) {
                 log.error("Failed to send event {}: {}", event.getId(), e.getMessage());
-
             }
         }
         repo.saveAll(events);
-
     }
 }
 

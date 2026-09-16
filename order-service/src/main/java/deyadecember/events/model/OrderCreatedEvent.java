@@ -1,4 +1,4 @@
-package deyadecember.events;
+package deyadecember.events.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

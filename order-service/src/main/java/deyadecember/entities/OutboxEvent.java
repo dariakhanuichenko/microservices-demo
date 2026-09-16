@@ -1,9 +1,6 @@
 package deyadecember.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -27,7 +24,9 @@ public class OutboxEvent {
 
     private String aggregateType;
     private String aggregateId;
-    private String eventType;
+
+    @Enumerated(EnumType.STRING)
+    private EventType eventType;
 
     @Column(name = "payload", columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)

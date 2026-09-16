@@ -1,4 +1,4 @@
-package deyadecember.events;
+package deyadecember.events.model;
 
 import java.time.Instant;
 import java.util.List;

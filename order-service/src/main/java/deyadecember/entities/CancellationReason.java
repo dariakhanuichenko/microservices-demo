@@ -1,6 +1,6 @@
 package deyadecember.entities;
 
-import deyadecember.events.RejectionReason;
+import deyadecember.events.model.RejectionReason;
 
 public enum CancellationReason {
     OUT_OF_STOCK,
