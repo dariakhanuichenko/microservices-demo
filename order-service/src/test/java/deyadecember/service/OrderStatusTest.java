@@ -1,5 +1,6 @@
 package deyadecember.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import deyadecember.entities.CancellationReason;
 import deyadecember.entities.Order;
@@ -76,7 +77,7 @@ class OrderStatusTest {
     }
 
     @Test
-    void completedOrderIsNotCancelledByLateFailure() {
+    void completedOrderIsNotCancelledByLateFailure() throws JsonProcessingException {
         service.payOrder(ORDER_ID);
         service.reserveOrder(ORDER_ID);
         assertEquals(OrderStatus.COMPLETED, order.getStatus());
@@ -88,7 +89,7 @@ class OrderStatusTest {
     }
 
     @Test
-    void cancelOrderTwiceStoresFirstReason() {
+    void cancelOrderTwiceStoresFirstReason() throws JsonProcessingException {
         service.cancelOrder(ORDER_ID, CancellationReason.OUT_OF_STOCK);
 
         assertEquals(CancellationReason.OUT_OF_STOCK, order.getCancellationReason());
