@@ -19,6 +19,8 @@ public class CustomerStatsStore {
 
     private static final RedisScript<Long> ADD_PAYMENT =
             RedisScript.of(new ClassPathResource("scripts/add-payment.lua"), Long.class);
+    private static final RedisScript<Long> REMOVE_PAYMENT =
+            RedisScript.of(new ClassPathResource("scripts/remove-payment.lua"), Long.class);
 
     private final StringRedisTemplate redis;
 
@@ -35,6 +37,20 @@ public class CustomerStatsStore {
     public CustomerStats get(UUID customerId) {
         return CustomerStats.fromHash(redis.opsForHash().entries(customerKey(customerId)));
     }
+
+    public RefundResult removePayment(UUID paymentId, UUID customerId, BigDecimal amount) {
+        Long result = redis.execute(
+                REMOVE_PAYMENT,
+                List.of(refundKey(paymentId), customerKey(customerId)),
+                String.valueOf(toCents(amount)),
+                String.valueOf(DEDUP_TTL.toSeconds()));
+
+        if (Long.valueOf(1).equals(result))  return RefundResult.COUNTED;
+        if (Long.valueOf(0).equals(result))  return RefundResult.DUPLICATE;
+        return RefundResult.ANOMALY;
+    }
+
+    private String refundKey(UUID paymentId) { return "processed:refund:" + paymentId; }
 
     private static long toCents(BigDecimal amount) {
         return amount.movePointRight(2).longValueExact();
