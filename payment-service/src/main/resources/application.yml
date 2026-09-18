@@ -39,4 +39,4 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 payment:
-  decline-above: 1000
+  decline-above: 5000
