@@ -128,7 +128,7 @@ public class StockStore {
         }
 
         if (!reservation.isReserved()) {
-            log.error("Order {} was never reserved ({}), cannot confirm", orderId, reservation.reason());
+            log.warn("Order {} was never reserved ({}), cannot confirm", orderId, reservation.reason());
             return;
         }
 

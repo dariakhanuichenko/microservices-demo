@@ -1,12 +1,12 @@
-package deyadecember.stock;
+package deyadecember.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import deyadecember.events.InventoryRejected;
 import deyadecember.events.RejectionReason;
-import deyadecember.listener.InventoryListener;
 import deyadecember.producer.InventoryProducer;
+import deyadecember.stock.StockStore;
 import deyadecember.stock.model.Stock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

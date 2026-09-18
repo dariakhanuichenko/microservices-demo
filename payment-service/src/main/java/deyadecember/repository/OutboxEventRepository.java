@@ -8,7 +8,6 @@ import java.util.UUID;
 
 public interface OutboxEventRepository
         extends JpaRepository<OutboxEvent, UUID> {
-
-    List<OutboxEvent>findTop10ByProcessedFalseOrderByCreatedAt();
+    List<OutboxEvent> findTop10ByProcessedFalseOrderByCreatedAt();
 }
 

@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "outbox_order_event")
+@Table(name = "outbox_payment_event")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +19,6 @@ public class OutboxEvent {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
-
     private UUID id;
 
     private String aggregateType;
