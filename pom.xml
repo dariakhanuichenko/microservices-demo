@@ -30,6 +30,7 @@
         <module>payment-service</module>
         <module>user-service</module>
         <module>inventory-service</module>
+        <module>catalog-service</module>
     </modules>
 
     <dependencies>
