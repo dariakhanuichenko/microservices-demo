@@ -1,6 +1,7 @@
 package deyadecember.service;
 
 
+import deyadecember.dto.FlowerResponse;
 import deyadecember.dto.PriceDTO;
 import deyadecember.entities.Flower;
 import deyadecember.repository.FlowerRepository;
@@ -12,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,21 +24,21 @@ public class FlowerService {
     private final Logger log = org.slf4j.LoggerFactory.getLogger(FlowerService.class);
 
 
-    public List<Flower> getAll() {
-        return new ArrayList<>(flowerRepository.findAll());
+    public List<FlowerResponse> getAll() {
+        return flowerRepository.findAll().stream().map(FlowerResponse::from).toList();
     }
 
-    public Flower getById(UUID id) {
+    public FlowerResponse getById(UUID id) {
         Flower flower = flowerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Flower not found: " + id
                 ));
 
-        return new Flower(flower);
+        return FlowerResponse.from(flower);
     }
 
     @Transactional
-    public Flower updatePrice(UUID id, PriceDTO dto) {
+    public FlowerResponse updatePrice(UUID id, PriceDTO dto) {
         if (dto == null || dto.price() == null || dto.price().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Invalid price found: " + dto);
         }
@@ -46,7 +46,7 @@ public class FlowerService {
                 .orElseThrow(() -> new EntityNotFoundException("Flower not found: " + id));
         flower.setPrice(dto.price());
         flower.setUpdatedAt(Instant.now());
-        return flower;
+        return FlowerResponse.from(flower);
     }
 
 }

@@ -31,11 +31,4 @@ public class Flower {
 
     @Column(nullable = false)
     private Instant updatedAt;
-
-    public Flower(Flower other) {
-        this.id = other.id;
-        this.name = other.name;
-        this.price = other.price;
-        this.updatedAt = other.updatedAt;
-    }
 }
