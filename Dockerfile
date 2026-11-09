@@ -11,6 +11,7 @@ COPY order-service/pom.xml     order-service/
 COPY payment-service/pom.xml   payment-service/
 COPY user-service/pom.xml      user-service/
 COPY inventory-service/pom.xml inventory-service/
+COPY catalog-service/pom.xml catalog-service/
 RUN mvn -B -ntp -pl ${SERVICE} -am dependency:go-offline -DskipTests
 
 COPY . .

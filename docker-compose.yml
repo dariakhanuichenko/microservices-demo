@@ -119,7 +119,7 @@ services:
         condition: service_completed_successfully
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ordersdb}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ordersdb
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-appuser}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
     ports:
@@ -139,7 +139,7 @@ services:
         condition: service_completed_successfully
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-paymentsdb}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paymentsdb
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-appuser}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
     ports:
@@ -177,6 +177,26 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     ports:
       - "8083:8083"
+
+  catalog-service:
+    build:
+      context: .
+      args:
+        SERVICE: catalog-service
+    image: microservices-demo/catalog-service
+    container_name: catalog-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/catalogdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-appuser}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+    ports:
+      - "8085:8085"
 
 volumes:
   postgres_data:
